@@ -1,0 +1,22 @@
+{
+  "name": "MPD.js",
+  "description": "",
+  "main": "app.js",
+  "authors": [
+    "Izra Faturrahman <Frizz925@hotmail.com>"
+  ],
+  "license": "ISC",
+  "moduleType": [
+    "es6",
+    "node"
+  ],
+  "homepage": "https://senakiho.tk",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

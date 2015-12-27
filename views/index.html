@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/bower_components/angular/angular.min.js"></script>
+		<script src="/bower_components/angular-aria/angular-aria.min.js"></script>
+		<script src="/bower_components/angular-animate/angular-animate.min.js"></script>
+		<script src="/bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+		<script src="/bower_components/angular-material/angular-material.min.js"></script>
+		<script src="/assets/js/client.js"></script>
+		<link href='https://fonts.googleapis.com/css?family=Roboto:400,500,700' rel='stylesheet' type='text/css'>
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+      	<link href="/bower_components/angular-material/angular-material.min.css" rel="stylesheet" type="text/css">
+      	<link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+		<title>MPD.js</title>
+	</head>
+	<body ng-app="MPDApp" ng-controller="MPDController">
+		<div class="container column">
+			<div>
+				<div class="content playback">
+					<div class="song-info">
+						<div class="cover" ng-style="{'background-image': 'url(' + coverURL + ')'}"></div>
+						<div class="primary" ng-show="!song.Title">{{song.file | basename}}</div>
+						<div class="primary" ng-show="song.Title">{{song.Title}}</div>
+						<div class="secondary" ng-show="song.Artist">{{song.Artist}}</div>
+						<div class="secondary" ng-show="song.Album">{{song.Album}}</div>
+						<div class="time">
+							<div class="current">{{status.time | time}}</div>
+							<div class="length">{{song.Time | time}}</div>
+						</div>
+						<div class="seeker">
+							<md-slider flex seeker ng-model="status.time" aria-label="seeker" step="1" min="1" max="1000"></md-slider>
+						</div>
+					</div>
+					<div layout="row">
+						<i flex class="material-icons playback-control" ng-click="commandToggle('random')" ng-class="{inactive: !status.random}">shuffle</i>
+						<i flex class="material-icons playback-control" ng-click="command('previous')">skip_previous</i>
+						<!-- <i class="material-icons playback-control" ng-click="command('stop')">stop</i> -->
+						<i flex class="material-icons playback-control" ng-click="command('pause 1')" ng-show="status.state == 'play'">pause</i>
+						<i flex class="material-icons playback-control" ng-click="command('play')" ng-show="status.state != 'play'">play_arrow</i>
+						<i flex class="material-icons playback-control" ng-click="command('next')">skip_next</i>
+						<i flex class="material-icons playback-control" ng-click="commandToggle('repeat')" ng-class="{inactive: !status.repeat}">repeat</i>
+					</div>
+					<div class="volume" layout>
+						<div layout layout-align="center center">
+							<i class="material-icons">volume_up</i>
+						</div>
+						<md-slider flex volume ng-model="status.volume" step="1" min="1" max="100" aria-label="volume"></md-slider>
+					</div>
+					<div class="options">
+						<md-checkbox flex ng-model="status.single" aria-label="Single mode">Single mode</md-checkbox>
+						<md-checkbox flex ng-model="status.consume" aria-label="Consume mode">Consume mode</md-checkbox>
+					</div>
+				</div>
+				<div class="content outputs">
+					<h2>Outputs</h3>
+					<md-checkbox flex ng-repeat="output in outputs" ng-model="output.outputenabled" aria-label="Output" ng-change="toggleOutput(output)">{{output.outputname}}</md-checkbox>
+				</div>
+			</div>
+			<div class="column">
+				<div class="content playlist">
+					<h2>Playlist</h2>
+					<md-input-container class="md-block md-accent">
+						<label>Search</label>
+						<input ng-model="search">
+					</md-input-container>
+					<ul playlist-scroll>
+						<li ng-repeat="item in playlist" ng-click="changeSong(item)">
+							<div class="left">
+								<div class="file" ng-show="!item.Title">{{item.file | basename}}</div>
+								<div class="title" ng-show="item.Title">{{item.Title}}</div>
+								<div class="album" ng-show="item.Album">{{item.Album}}</div>
+								<div class="artist" ng-show="item.Artist">{{item.Artist}}</div>
+							</div>
+							<div class="right icons" ng-show="item.Id == song.Id">
+								<i class="material-icons" ng-show="status.state == 'play'">play_arrow</i>
+								<i class="material-icons" ng-show="status.state == 'pause'">pause</i>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
