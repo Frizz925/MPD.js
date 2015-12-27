@@ -54,10 +54,6 @@
 						<md-checkbox flex ng-model="status.consume" aria-label="Consume mode">Consume mode</md-checkbox>
 					</div>
 				</div>
-				<div class="content outputs">
-					<h2>Outputs</h3>
-					<md-checkbox flex ng-repeat="output in outputs" ng-model="output.outputenabled" aria-label="Output" ng-change="toggleOutput(output)">{{output.outputname}}</md-checkbox>
-				</div>
 			</div>
 			<div class="column">
 				<div class="content playlist">
@@ -80,6 +76,10 @@
 							</div>
 						</li>
 					</ul>
+				</div>
+				<div class="content outputs">
+					<h2>Outputs</h3>
+					<md-checkbox flex ng-repeat="output in outputs" ng-model="output.outputenabled" aria-label="Output" ng-change="toggleOutput(output)">{{output.outputname}}</md-checkbox>
 				</div>
 			</div>
 		</div>
