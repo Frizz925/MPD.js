@@ -3,9 +3,9 @@
   "description": "",
   "main": "app.js",
   "authors": [
-    "Izra Faturrahman <Frizz925@hotmail.com>"
+    "Frizz925 <Frizz925@hotmail.com>"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "moduleType": [
     "es6",
     "node"
