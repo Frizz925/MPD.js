@@ -1,3 +1,4 @@
+var DEBUG_OUTPUT = false;
 var app = angular.module('MPDApp', ['ngMaterial']);
 var mPlaylist;
 
@@ -44,7 +45,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 	socket.on('mpd song', function(msg) {
 		var song = JSON.parse(msg);
 		song.Pos = Number(song.Pos);
-		console.log('mpd song', song);
+		if (DEBUG_OUTPUT) console.log('mpd song', song);
 
 		me.notify('mpd song', song);
 	});
@@ -60,7 +61,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 	});
 
 	socket.on('mpd playlist', function(url) {
-		console.log(url);
+		if (DEBUG_OUTPUT) console.log(url);
 		$http.get(url).then(function(response) {
 			var playlist = response.data;
 			me.notify('mpd playlist', playlist);
@@ -93,35 +94,39 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 		var _playlist = [];
 		var currentPos = 0;
 
+		var reset = function() {
+			currentPos = 0;
+			$scope.playlist = [];
+		};
+
 		this.perScrollSize = 20;
 
 		this.setPlaylist = function(playlist) {
-			currentPos = 0;
+			reset();
 			_playlist = playlist;
 		};
 
 		this.search = function() {
-			currentPos = 0;
+			reset();
 			me.update();
 		};
 
 		this.update = function() {
 			var search = $scope.search.toLowerCase();
 			var count = 0, countMax = currentPos + me.perScrollSize;
-			var temp = [];
 
 			_playlist.forEach(function(el) {
 				if (count > countMax) return;
 				var keyword = el.Title + " " + el.Artist + " " + el.Album;
 				keyword = keyword.toLowerCase();
 				if (keyword.indexOf(search) != -1) {
-					temp.push(el);
-					currentPos++;
+					if (count >= currentPos) {
+						$scope.playlist.push(el);
+						currentPos++;
+					}
 					count++;
 				}
 			});
-
-			$scope.playlist = temp;
 		};
 	})();
 
@@ -156,6 +161,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	$scope.status = {};
 	$scope.song = {};
 	$scope.outputs = {};
+	$scope.playlist = [];
 	$scope.coverURL = "";
 	$scope.search = "";
 	/* $scope.stream_url = $sce.trustAsResourceUrl("http://" + $location.host() + ":8001"); */
@@ -182,7 +188,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	MPDService.subscribe('mpd status', $scope, function(event, status) {
 		if ($scope.statusChanging) return;
 
-		console.log(status);
+		if (DEBUG_OUTPUT) console.log(status);
 
 		if (status.state != 'play' && timeInterval) {
 			clearInterval(timeInterval);
@@ -196,7 +202,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	});
 
 	MPDService.subscribe('mpd song', $scope, function(event, song) {
-		console.log(song);
+		if (DEBUG_OUTPUT) console.log(song);
 		fetchAlbumCover(song);
 
 		$scope.song = song;
@@ -204,13 +210,13 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	});
 
 	MPDService.subscribe('mpd outputs', $scope, function(event, outputs) {
-		console.log(outputs);
+		if (DEBUG_OUTPUT) console.log(outputs);
 		$scope.outputs = outputs;
 		$scope.$apply();
 	});
 
 	MPDService.subscribe('mpd playlist', $scope, function(event, playlist) {
-		console.log(playlist);
+		if (DEBUG_OUTPUT) console.log(playlist);
 		playlist.forEach(function(el, idx) {
 			el.index = idx;
 		});
@@ -246,7 +252,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	}, function() {
 		if (searchTimeout) clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(function() {
-			$scope.playlistController.update();
+			$scope.playlistController.search();
 		}, 500);
 	});
 }]);
@@ -292,7 +298,6 @@ app.directive('playlistScroll', function() {
 		restrict: 'A',
 		link: function($scope, elm, attr) {
 			var raw = elm[0];
-			console.log(raw);
 			raw.addEventListener('scroll', function() {
 				if (raw.scrollTop + raw.offsetHeight >= raw.scrollHeight) {
 					$scope.playlistController.update();

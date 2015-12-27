@@ -2,6 +2,7 @@
 const HTTP_PORT = 3000;
 const MPD_HOST = "raspberrypi.lan";
 const MPD_PORT = 6600;
+const DEVELOPER_MODE = false;
 
 // Import depedencies
 var net = require('net');
@@ -166,7 +167,7 @@ var MPDClient = function(socketio) {
 	};
 
 	client.on('error', function(arg) {
-		console.log("Command socket", arg);
+		if (DEVELOPER_MODE) console.log("Command socket", arg);
 	});
 
 	client.on('data', function(data) {
@@ -184,7 +185,7 @@ var MPDClient = function(socketio) {
 	});
 
 	idle_client.on('error', function(arg) {
-		console.log("Idle socket", arg);
+		if (DEVELOPER_MODE) console.log("Idle socket", arg);
 	});
 
 	idle_client.on('data', function(data) {
@@ -233,7 +234,7 @@ var MPDClient = function(socketio) {
 
 	this.command = function(cmd) {
 		queue.push(cmd);
-		console.log("Command: " + cmd);
+		if (DEVELOPER_MODE) console.log("Command: " + cmd);
 		client.write(cmd + "\r\n");
 	};
 
@@ -300,7 +301,7 @@ app.get('/', function(req, res) {
 
 // START: Socket.IO configurations
 io.on('connection', function(socket) {
-	console.log(' connected');
+	if (DEVELOPER_MODE) console.log(' connected');
 	socket.on('mpd command', function(msg) {
 		mpd.command(msg);
 	});
@@ -308,7 +309,7 @@ io.on('connection', function(socket) {
 		mpd.emitMultiple(['status', 'outputs', 'playlistinfo', 'song']);
 	});
 	socket.on('disconnect', function() {
-		console.log(' disconnected');
+		if (DEVELOPER_MODE) console.log(' disconnected');
 	});
 });
 // END: Socket.IO configurations
