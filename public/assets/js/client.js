@@ -18,7 +18,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 		socket.emit('mpd socketio connection');
 	});
 
-	socket.on('diconnect', function() {
+	socket.on('disconnect', function() {
 		$mdToast.show(
 			$mdToast.simple()
 				.textContent('Lost connection to MPD server')
