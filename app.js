@@ -139,7 +139,8 @@ var MPDClient = function(socketio) {
 				continue;
 			}
 
-			var parts = el.split(/:\s/, 2);
+			var parts = el.split(': ');
+			parts = [parts.shift(), parts.join(': ')];
 			handler(parts[0], parts[1]);
 		}
 

@@ -153,6 +153,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 
 			if (album) {
 				var images = album.image;
+				$scope.albumURL = album.url;
 				$scope.coverURL = images[images.length-2]['#text'];
 			}
 		});
@@ -219,6 +220,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 		if (DEBUG_OUTPUT) console.log(playlist);
 		playlist.forEach(function(el, idx) {
 			el.index = idx;
+			el.Pos = Number(el.Pos);
 		});
 
 		$scope.playlistController.setPlaylist(playlist);
@@ -228,7 +230,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	$scope.$watch(function() {
 		return $scope.status.volume;
 	}, function(value, old_value) {
-		if (typeof value != 'number' || value == old_value) return;
+		if (typeof value != 'number' || value == old_value || !$scope.statusChanging) return;
 		MPDService.command("setvol " + value);
 	});
 
@@ -250,7 +252,9 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 	$scope.$watch(function() {
 		return $scope.search;
 	}, function() {
-		if (searchTimeout) clearTimeout(searchTimeout);
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
 		searchTimeout = setTimeout(function() {
 			$scope.playlistController.search();
 		}, 500);

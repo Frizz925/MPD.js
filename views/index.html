@@ -21,7 +21,9 @@
 			<div>
 				<div class="content playback">
 					<div class="song-info">
-						<div class="cover" ng-style="{'background-image': 'url(' + coverURL + ')'}"></div>
+						<a ng-href="{{albumURL}}" target="_blank">
+							<div class="cover" ng-style="{'background-image': 'url(' + coverURL + ')'}"></div>
+						</a>
 						<div class="primary" ng-show="!song.Title">{{song.file | basename}}</div>
 						<div class="primary" ng-show="song.Title">{{song.Title}}</div>
 						<div class="secondary" ng-show="song.Artist">{{song.Artist}}</div>
@@ -70,7 +72,7 @@
 								<div class="album" ng-show="item.Album">{{item.Album}}</div>
 								<div class="artist" ng-show="item.Artist">{{item.Artist}}</div>
 							</div>
-							<div class="right icons" ng-show="item.Id == song.Id">
+							<div class="right icons" ng-show="item.Pos == song.Pos">
 								<i class="material-icons" ng-show="status.state == 'play'">play_arrow</i>
 								<i class="material-icons" ng-show="status.state == 'pause'">pause</i>
 							</div>
