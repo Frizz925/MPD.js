@@ -191,15 +191,15 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 
 		if (DEBUG_OUTPUT) console.log(status);
 
+		$scope.status = status;
+		$scope.$apply();
+
 		if (status.state != 'play' && timeInterval) {
 			clearInterval(timeInterval);
 			timeInterval = null;
 		} else if (status.state == 'play' && !timeInterval) {
 			timeInterval = setInterval(timeUpdate, 1000);
 		}
-
-		$scope.status = status;
-		$scope.$apply();
 	});
 
 	MPDService.subscribe('mpd song', $scope, function(event, song) {
