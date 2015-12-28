@@ -289,8 +289,8 @@ mpd.on('mpd playlist', function(playlist) {
 });
 
 // START: ExpressJS configurations
-app.use('/assets', express.static('public/assets'));
-app.use('/bower_components', express.static('bower_components'));
+app.use('/assets', express.static(__dirname + '/public/assets'));
+app.use('/bower_components', express.static(__dirname + '/bower_components'));
 app.get('/api/playlist.json', function(req, res) {
 	res.sendFile(__dirname + "/storage/playlist.json");
 });

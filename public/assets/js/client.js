@@ -337,6 +337,6 @@ app.filter('time', function() {
 
 app.config(['$mdThemingProvider', function($mdThemingProvider) {
 	$mdThemingProvider.theme('default')
-		.primaryPalette('indigo')
-		.accentPalette('pink');
+		.primaryPalette('red')
+		.accentPalette('indigo');
 }]);
