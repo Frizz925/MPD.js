@@ -4,6 +4,9 @@ Web client for MPD server written using Node.js, Socket.IO, and AngularJS
 # Screenshot
 ![MPD.js](https://raw.githubusercontent.com/Frizz925/MPD.js/master/screenshots/main.png)
 
+# Stability
+MPD.js is currently in alpha stage and thus may be unstable at times. If you happen to find a bug or error, please report over to [issues](https://github.com/Frizz925/MPD.js/issues)!
+
 # How to use
 Install the required Node.js modules
 
@@ -24,3 +27,9 @@ If you wish to change either the web port or MPD host/port, everything you need 
 
 To change the web port, you only need to change the **HTTP\_PORT** constant.
 To change where MPD.js server should connect to the MPD server through what host and which port, you can change **MPD\_HOST** and **MPD\_PORT** respectively.
+
+# Features
+Currently MPD.js has the following features.
+
+  - Album cover fetching using [Last.FM API](http://www.last.fm/api)
+  - Real-time music updates between server and each clients
