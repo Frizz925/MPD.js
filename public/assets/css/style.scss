@@ -27,7 +27,7 @@ body {
 	overflow-y: auto;
 	text-align: center;
 
-	&.column > div {
+	& > .column {
 		display: inline-block;
 		vertical-align: top;
 		margin-left: $padding-width;
@@ -42,7 +42,7 @@ body {
 
 .content {
 	background: white;
-	margin-bottom: $padding-width;
+	margin-top: $padding-width;
 	padding: $padding-width;
 	box-shadow: 1px 2px 3px rgba(0,0,0,0.3), 0 0 4px rgba(0,0,0,0.2);
 
@@ -54,13 +54,13 @@ body {
 		margin-top: 0;
 	}
 
-	@media screen and (min-width: $max-width) {
-		width: $content-width;
-		margin: 0 auto $padding-width auto;
+	&:last-child {
+		margin-bottom: $padding-width;
 	}
 
-	&:first-child {
-		margin-top: $padding-width;
+	@media screen and (min-width: $max-width) {
+		width: $content-width;
+		margin: $padding-width auto 0 auto;
 	}
 }
 

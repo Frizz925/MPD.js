@@ -2,7 +2,7 @@
 const HTTP_PORT = 3000;
 const MPD_HOST = "raspberrypi.lan";
 const MPD_PORT = 6600;
-const DEVELOPER_MODE = false;
+const DEBUG_OUTPUT = false;
 
 // Import depedencies
 var net = require('net');
@@ -16,8 +16,7 @@ var io = require('socket.io')(http);
 // Define objects
 var MPDClient = function(socketio) {
 	var me = this;
-	var client = new net.Socket();
-	var idle_client = new net.Socket();
+	var client, idle_client;
 	var queue = [];
 	var _host, _port;
 
@@ -29,33 +28,25 @@ var MPDClient = function(socketio) {
 	this.outputs = [];
 
 	var handlePlaylistResponse = function() {
-		var song = null;
+		var song = {};
 		return function(key, val) {
-			if (song) {
-				if (key == 'file') {
-					me.playlist.push(song);
-					song = {};
-				}
-			} else {
+			song[key] = val;
+			if (key == 'Id') {
+				me.playlist.push(song);
 				song = {};
 			}
-			song[key] = val;
 		};
 	};
 
 	var handleOutputsResponse = function() {
 		me.outputs = [];
-		var output = null;
+		var output = {};
 		return function(key, val) {
-			if (output) {
-				if (key == 'outputid') {
-					me.outputs.push(output);
-					output = {};
-				}
-			} else {
+			output[key] = val;
+			if (key == 'outputenabled') {
+				me.outputs.push(output);
 				output = {};
 			}
-			output[key] = val;
 		};
 	};
 
@@ -129,6 +120,7 @@ var MPDClient = function(socketio) {
 
 		while (!responseBuffer.isEmpty()) {
 			var el = responseBuffer.pop();
+			if (DEBUG_OUTPUT) console.log(arg, el);
 
 			if (el.match(/^OK/)) {
 				queue.splice(0, 1);
@@ -146,6 +138,7 @@ var MPDClient = function(socketio) {
 
 		if (!responseBuffer.isEmpty()) {
 			var temp = processResponse();
+			if (DEBUG_OUTPUT) console.log(arg, temp, queue);
 			temp.forEach(function(el) {
 				result.push(el);
 			});
@@ -167,82 +160,117 @@ var MPDClient = function(socketio) {
 		}
 	};
 
-	client.on('error', function(arg) {
-		if (DEVELOPER_MODE) console.log("Command socket", arg);
-	});
-
-	client.on('data', function(data) {
-		var msg = String(data).trim();
-		//console.log(queue);
-		//console.log(msg);
-		var args = processResponse(msg);
-		if (!args) return;
-		me.emitMultiple(args);
-	});
-
-	client.on('close', function() {
-		mpd = new MPDClient(socketio);
-		mpd.connect(_host, _port);
-	});
-
-	idle_client.on('error', function(arg) {
-		if (DEVELOPER_MODE) console.log("Idle socket", arg);
-	});
-
-	idle_client.on('data', function(data) {
-		var msg = String(data).trim();
-		if (msg.match(/^OK MPD/)) return;
-
-		//console.log(msg);
-		var regex = /^changed: ([^\n]+)/;
-		var matches = msg.match(regex);
-		if (matches) {
-			var changed = matches[1];
-
-			switch (changed) {
-				case 'player':
-					me.command("status");
-					me.command("currentsong");
-					break;
-				case 'output':
-					me.command("outputs");
-					break;
-				default:
-					me.command("status");
-					break;
-			}
-
-			idle(idle_client);
-		}
-	});
-
 	this.connect = function(host, port) {
 		_host = host;
 		_port = port;
-		client.connect(port, host, function() {
-			// Also starts the web server
-			http.listen(HTTP_PORT, function() {
-				console.log("Web server listening on *:" + HTTP_PORT);
+
+		var createSocket = function() {
+			var socket = new net.Socket();
+
+			socket.on('error', function(arg) {
+				if (DEBUG_OUTPUT) console.log("Command socket", arg);	
+				console.log("Pipe broken. Recreating command socket.");
+				me.connect(host, port);
 			});
-			console.log("TCP socket connected to %s:%s", host, port);
-			me.commands(['status', 'currentsong', 'outputs', 'playlistinfo']);
-		});
-		idle_client.connect(port, host, function() {
-			console.log("Idle TCP socket connected to %s:%s", host, port);
-			idle(idle_client);
-		});
+
+			socket.on('data', function(data) {
+				var msg = String(data).trim();
+				//console.log(queue);
+				//console.log(msg);
+				var args = processResponse(msg);
+				if (!args) return;
+				me.emitMultiple(args);
+			});
+
+			socket.on('close', function() {
+				mpd = new MPDClient(socketio);
+				mpd.connect(host, port);
+			});
+
+			return {
+				socket: socket,
+				onconnect: function() {
+					console.log("TCP socket connected to %s:%s", host, port);
+					me.commands(['status', 'currentsong', 'outputs', 'playlistinfo']);
+
+					http.listen(HTTP_PORT, function() {
+						console.log("Web server listening on *:" + HTTP_PORT);
+					});
+				}
+			};
+		};
+
+		var createIdleSocket = function() {
+			var socket = new net.Socket();
+
+			socket.on('error', function(arg) {
+				if (DEBUG_OUTPUT) console.log("Idle socket", arg);
+			});
+
+			socket.on('data', function(data) {
+				var msg = String(data).trim();
+				if (msg.match(/^OK MPD/)) return;
+
+				msg.split("\n").forEach(function(msg) {
+					//console.log(msg);
+					var regex = /^changed: ([a-z]+)/;
+					var matches = msg.match(regex);
+					if (matches) {
+						var changed = matches[1];
+						if (DEBUG_OUTPUT) console.log("changed: " + changed);
+
+						switch (changed) {
+							case 'player':
+								me.command("status");
+								me.command("currentsong");
+								break;
+							case 'output':
+								me.command("status");
+								me.command("outputs");
+								break;
+							default:
+								me.command("status");
+								break;
+						}
+					}
+				});
+
+				idle(socket);
+			});
+
+			return {
+				socket: socket,
+				onconnect: function() {
+					console.log("Idle TCP socket connected to %s:%s", host, port);
+					idle(idle_client);
+				}
+			};
+		};
+
+		var sockets = {
+			idle: createIdleSocket(),
+			cmd: createSocket()
+		};
+
+		idle_client = sockets.idle.socket;
+		idle_client.connect(port, host, sockets.idle.onconnect);
+		client = sockets.cmd.socket;
+		client.connect(port, host, sockets.cmd.onconnect);
 	};
 
-	this.command = function(cmd) {
+	this.command = function(cmd, callback) {
 		queue.push(cmd);
-		if (DEVELOPER_MODE) console.log("Command: " + cmd);
-		client.write(cmd + "\r\n");
+		if (DEBUG_OUTPUT) console.log("Command: " + cmd);
+		client.write(cmd + "\r\n", 'UTF-8', callback);
 	};
 
 	this.commands = function(cmds) {
-		cmds.forEach(function(cmd) {
-			me.command(cmd);
-		});
+		var cmd = cmds.shift();
+		if (cmd) {
+			me.command(cmd, function() {
+				me.commands(cmds);
+			});
+		}
 	};
 
 	this.emitMultiple = function(args) {
@@ -302,7 +330,7 @@ app.get('/', function(req, res) {
 
 // START: Socket.IO configurations
 io.on('connection', function(socket) {
-	if (DEVELOPER_MODE) console.log(' connected');
+	if (DEBUG_OUTPUT) console.log(' connected');
 	socket.on('mpd command', function(msg) {
 		mpd.command(msg);
 	});
@@ -310,7 +338,7 @@ io.on('connection', function(socket) {
 		mpd.emitMultiple(['status', 'outputs', 'playlistinfo', 'song']);
 	});
 	socket.on('disconnect', function() {
-		if (DEVELOPER_MODE) console.log(' disconnected');
+		if (DEBUG_OUTPUT) console.log(' disconnected');
 	});
 });
 // END: Socket.IO configurations

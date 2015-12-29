@@ -32,6 +32,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 
 	socket.on('mpd status', function(msg) {
 		var status = JSON.parse(msg);
+		if (DEBUG_OUTPUT) console.log('mpd status', status);
 		status.volume = Number(status.volume);
 		status.single = Boolean(Number(status.single));
 		status.repeat = Boolean(Number(status.repeat));
@@ -52,6 +53,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 
 	socket.on('mpd outputs', function(msg) {
 		var outputs = JSON.parse(msg);
+		if (DEBUG_OUTPUT) console.log(outputs);
 		outputs.forEach(function(el) {
 			el.outputid = Number(el.outputid);
 			el.outputenabled = Boolean(Number(el.outputenabled));
@@ -61,7 +63,7 @@ app.service('MPDService', ['$rootScope', '$mdToast', '$http', function($rootScop
 	});
 
 	socket.on('mpd playlist', function(url) {
-		if (DEBUG_OUTPUT) console.log(url);
+		if (DEBUG_OUTPUT) console.log('mpd playlist', url);
 		$http.get(url).then(function(response) {
 			var playlist = response.data;
 			me.notify('mpd playlist', playlist);
@@ -159,7 +161,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 		});
 	};
 
-	$scope.status = {};
+	$scope.status = { time: 0 };
 	$scope.song = {};
 	$scope.outputs = {};
 	$scope.playlist = [];
@@ -212,6 +214,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 
 	MPDService.subscribe('mpd outputs', $scope, function(event, outputs) {
 		if (DEBUG_OUTPUT) console.log(outputs);
+
 		$scope.outputs = outputs;
 		$scope.$apply();
 	});
