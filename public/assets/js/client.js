@@ -206,6 +206,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 
 	MPDService.subscribe('mpd song', $scope, function(event, song) {
 		if (DEBUG_OUTPUT) console.log(song);
+		if (song.Pos == $scope.song.Pos) return;
 		fetchAlbumCover(song);
 
 		$scope.song = song;
@@ -260,6 +261,7 @@ app.controller('MPDController', ['$scope', '$location', '$http', 'MPDService', f
 		}
 		searchTimeout = setTimeout(function() {
 			$scope.playlistController.search();
+			searchTimeout = null;
 		}, 500);
 	});
 }]);

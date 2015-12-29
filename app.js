@@ -164,12 +164,20 @@ var MPDClient = function(socketio) {
 		_host = host;
 		_port = port;
 
+		if (client && client.connected) {
+			client.destroy();
+		}
+
+		if (idle_client && idle_client.connected) {
+			idle_client.destroy();
+		}
+
 		var createSocket = function() {
 			var socket = new net.Socket();
 
 			socket.on('error', function(arg) {
 				if (DEBUG_OUTPUT) console.log("Command socket", arg);	
-				console.log("Pipe broken. Recreating command socket.");
+				console.log("[ERROR] Pipe broken. Recreating command socket.");
 				me.connect(host, port);
 			});
 
@@ -253,9 +261,11 @@ var MPDClient = function(socketio) {
 		};
 
 		idle_client = sockets.idle.socket;
-		idle_client.connect(port, host, sockets.idle.onconnect);
-		client = sockets.cmd.socket;
-		client.connect(port, host, sockets.cmd.onconnect);
+		idle_client.connect(port, host, function() {
+			client = sockets.cmd.socket;
+			client.connect(port, host, sockets.cmd.onconnect);
+			sockets.idle.onconnect();
+		});
 	};
 
 	this.command = function(cmd, callback) {
