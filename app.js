@@ -1,6 +1,6 @@
 // Define some constants
 const HTTP_PORT = 3000;
-const MPD_HOST = "raspberrypi.lan";
+const MPD_HOST = "localhost";
 const MPD_PORT = 6600;
 const DEBUG_OUTPUT = false;
 

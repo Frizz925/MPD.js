@@ -1,16 +1,21 @@
 {
   "name": "MPD.js",
   "version": "1.0.0",
-  "description": "",
+  "description": "Web client for MPD server written using Node.js, Socket.IO, and AngularJS",
   "main": "app.js",
+  "homepage": "https://github.com/Frizz925/MPD.js",
+  "repository" : {
+      "type" : "git",
+      "url" : "https://github.com/Frizz925/MPD.js.git"
+  },
   "dependencies": {
     "express": "^4.13.3",
     "socket.io": "^1.3.7"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node app.js"
   },
-  "author": "",
+  "author": "Frizz925",
   "license": "MIT"
 }
